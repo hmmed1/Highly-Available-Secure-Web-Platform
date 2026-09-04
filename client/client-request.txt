@@ -1,0 +1,24 @@
+# Client Request 
+
+We are a small company preparing to launch a new web application.
+
+The application will be accessible to customers over the Internet.
+
+Our development team is currently preparing the application, but we want the infrastructure to be ready before the application is deployed.
+
+Security is important to us. We do not want every component of the system to be directly exposed to the Internet.
+
+We also want the application to remain available if a server or part of the infrastructure fails. A failure of a single component should not bring the entire application offline.
+
+Our development team will need access to the infrastructure, but developers should not have unrestricted access to the entire cloud environment.
+
+We expect the application to grow over time, although we cannot currently predict how quickly traffic will increase.
+
+We would also like the infrastructure to be reproducible so that we can recreate the environment if necessary rather than configuring everything manually.
+
+Because we are a small company, we want the solution to remain reasonably cost-conscious while still meeting the availability and security requirements.
+
+Please review our requirements and propose an infrastructure solution.
+
+
+At this stage, we do not have a preferred cloud service or architecture. We expect you to recommend an appropriate solution based on the requirements above.

@@ -1,0 +1,34 @@
+# Terraform
+.terraform/
+*.tfstate
+*.tfstate.*
+crash.log
+crash.*.log
+*.tfplan
+*.tfplan.json
+.terraform.lock.hcl
+
+# Terraform variable files
+*.tfvars
+*.tfvars.json
+
+# Environment / secrets
+.env
+.env.*
+*.pem
+*.key
+
+# AWS credentials
+.aws/
+credentials
+
+# OS files
+.DS_Store
+Thumbs.db
+
+# IDE / editors
+.vscode/
+.idea/
+
+# Logs
+*.log
