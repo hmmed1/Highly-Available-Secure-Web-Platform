@@ -8,17 +8,14 @@ crash.*.log
 *.tfplan.json
 .terraform.lock.hcl
 
-# Terraform variable files
 *.tfvars
 *.tfvars.json
 
-# Environment / secrets
 .env
 .env.*
 *.pem
 *.key
 
-# AWS credentials
 .aws/
 credentials
 
@@ -26,7 +23,6 @@ credentials
 .DS_Store
 Thumbs.db
 
-# IDE / editors
 .vscode/
 .idea/
 
