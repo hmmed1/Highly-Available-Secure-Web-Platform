@@ -196,7 +196,7 @@ resource "aws_launch_template" "web_launch_template" {
               sudo yum install -y httpd
               sudo systemctl start httpd
               sudo systemctl enable httpd
-              echo "<h1>Welcome to the @Hmedd1 Highly Available Secure Web Platform</h1>" | sudo tee /var/www/html/index.html
+              echo "<h1>Welcome to the @Hmedd1 Highly Available Secure Web Platform Check out my Github for more Projects And Guides&Training </h1>" | sudo tee /var/www/html/index.html
               EOF
   )
 }
@@ -211,3 +211,5 @@ resource "aws_autoscaling_group" "web_asg" {
   }
   target_group_arns = [aws_lb_target_group.web_tg.arn]
 }
+
+
