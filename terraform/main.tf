@@ -279,3 +279,71 @@ resource "aws_route_table_association" "private_B" {
   subnet_id      = aws_subnet.private_B.id
   route_table_id = aws_route_table.private.id
 }
+
+
+# -------------------------
+# DB
+# -------------------------
+
+
+
+resource "aws_security_group" "db_sg" {
+  name        = "db_sg"
+  description = "Allow PostgreSQL  traffic from EC2 instances"
+  vpc_id      = aws_vpc.main.id
+
+  ingress {
+    from_port       = 5432
+    to_port         = 5432
+    protocol        = "tcp"
+    security_groups = [aws_security_group.instance_sg.id]
+  }
+
+egress {
+  from_port   = 0
+  to_port     = 0
+  protocol    = "-1"
+  cidr_blocks = ["0.0.0.0/0"]
+}
+}
+
+
+resource "aws_db_subnet_group" "db_subnet_group" {
+  name       = "db-subnet-group"
+  subnet_ids = [aws_subnet.private_A.id, aws_subnet.private_B.id]
+
+  tags = {
+    Name = "DB Subnet Group"
+  }
+}
+
+
+resource "aws_db_instance" "web_db" {
+  identifier = "web-db"
+  engine = "postgres"
+  db_name  = "webapp"
+  username = "appadmin"
+  port     = 5432
+  instance_class    = "db.t3.micro"
+  allocated_storage = 20
+  storage_type      = "gp3"
+  max_allocated_storage = 50
+  publicly_accessible = false
+  storage_encrypted   = true
+  multi_az = true
+  backup_retention_period = 7
+  db_subnet_group_name = aws_db_subnet_group.db_subnet_group.name
+  vpc_security_group_ids = [
+    aws_security_group.db_sg.id
+  ]
+
+  manage_master_user_password = true
+
+  # Lab-friendly cleanup
+  deletion_protection = false
+  skip_final_snapshot = true
+
+  tags = {
+    Name = "Web Application Database"
+  }
+}
