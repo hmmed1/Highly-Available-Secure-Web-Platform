@@ -10,8 +10,8 @@ data "aws_availability_zones" "available" {
 }
 
 resource "aws_vpc" "main" {
-  cidr_block           = "10.0.0.0/16"
-  enable_dns_support   = true
+  cidr_block         = "10.0.0.0/16"
+  enable_dns_support = true
 
   tags = {
     Name = "Highly-Available-Secure-Web-Platform"
@@ -120,13 +120,6 @@ resource "aws_security_group" "ALB_web_sg" {
   }
 }
 
-resource "aws_vpc_security_group_ingress_rule" "allow_https" {
-  security_group_id = aws_security_group.ALB_web_sg.id
-  from_port         = 443
-  to_port           = 443
-  ip_protocol       = "tcp"
-  cidr_ipv4         = "0.0.0.0/0"
-}
 
 # -------------------------
 # LOAD BALANCER
@@ -137,6 +130,17 @@ resource "aws_lb_target_group" "web_tg" {
   port     = 80
   protocol = "HTTP"
   vpc_id   = aws_vpc.main.id
+  health_check {
+    enabled             = true
+    path                = "/"
+    protocol            = "HTTP"
+    port                = "traffic-port"
+    healthy_threshold   = 2
+    unhealthy_threshold = 3
+    timeout             = 5
+    interval            = 30
+    matcher             = "200"
+  }
 }
 
 resource "aws_lb" "web_alb" {
@@ -195,18 +199,17 @@ resource "aws_security_group" "instance_sg" {
 
 resource "aws_launch_template" "web_launch_template" {
   name_prefix   = "web-launch-template-"
-  image_id = data.aws_ssm_parameter.amazon_linux.value
-  instance_type = "t2.micro"
+  image_id      = data.aws_ssm_parameter.amazon_linux.value
+  instance_type = "t3.micro"
   vpc_security_group_ids = [
     aws_security_group.instance_sg.id
   ]
 
   user_data = base64encode(<<-EOF
               #!/bin/bash
-              sudo yum update -y
-              sudo yum install -y httpd
-              sudo systemctl start httpd
-              sudo systemctl enable httpd
+              sudo dnf update -y
+              sudo dnf install -y httpd
+              sudo systemctl enable --now httpd
               echo "<h1>Welcome to the @Hmedd1 Highly Available Secure Web Platform</h1>" | sudo tee /var/www/html/index.html
               EOF
   )
@@ -217,9 +220,12 @@ resource "aws_launch_template" "web_launch_template" {
 # -------------------------
 
 resource "aws_autoscaling_group" "web_asg" {
-  desired_capacity    = 2
-  max_size            = 4
-  min_size            = 2
+  desired_capacity = 2
+  max_size         = 4
+  min_size         = 2
+
+  health_check_type         = "ELB"
+  health_check_grace_period = 120
 
   vpc_zone_identifier = [
     aws_subnet.private_A.id,
@@ -235,7 +241,6 @@ resource "aws_autoscaling_group" "web_asg" {
     aws_lb_target_group.web_tg.arn
   ]
 }
-
 # -------------------------
 # NAT GATEWAY
 # -------------------------
@@ -299,12 +304,12 @@ resource "aws_security_group" "db_sg" {
     security_groups = [aws_security_group.instance_sg.id]
   }
 
-egress {
-  from_port   = 0
-  to_port     = 0
-  protocol    = "-1"
-  cidr_blocks = ["0.0.0.0/0"]
-}
+  egress {
+    from_port   = 0
+    to_port     = 0
+    protocol    = "-1"
+    cidr_blocks = ["0.0.0.0/0"]
+  }
 }
 
 
@@ -319,20 +324,20 @@ resource "aws_db_subnet_group" "db_subnet_group" {
 
 
 resource "aws_db_instance" "web_db" {
-  identifier = "web-db"
-  engine = "postgres"
-  db_name  = "webapp"
-  username = "appadmin"
-  port     = 5432
-  instance_class    = "db.t3.micro"
-  allocated_storage = 20
-  storage_type      = "gp3"
-  max_allocated_storage = 50
-  publicly_accessible = false
-  storage_encrypted   = true
-  multi_az = true
-  backup_retention_period = 7
-  db_subnet_group_name = aws_db_subnet_group.db_subnet_group.name
+  identifier              = "web-db"
+  engine                  = "postgres"
+  db_name                 = "webapp"
+  username                = "appadmin"
+  port                    = 5432
+  instance_class          = "db.t3.micro"
+  allocated_storage       = 20
+  storage_type            = "gp3"
+  max_allocated_storage   = 50
+  publicly_accessible     = false
+  storage_encrypted       = true
+  multi_az                = true
+  backup_retention_period = 1
+  db_subnet_group_name    = aws_db_subnet_group.db_subnet_group.name
   vpc_security_group_ids = [
     aws_security_group.db_sg.id
   ]
@@ -347,3 +352,8 @@ resource "aws_db_instance" "web_db" {
     Name = "Web Application Database"
   }
 }
+
+
+
+
+
